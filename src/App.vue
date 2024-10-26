@@ -5,6 +5,7 @@ import { RouterView, useRouter } from "vue-router";
 import Navbar from "./components/Navbar.vue";
 import UserComponent from "./components/UserList.vue";
 import ItemComponent from "./components/ItemList.vue";
+import TransactionComponent from "./components/TransactionList.vue";
 
 const router = useRouter();
 const currentPage = ref("user");
@@ -21,6 +22,9 @@ const handleNavigation = (page) => {
     </div>
     <div v-if="currentPage === 'item'">
       <ItemComponent />
+    </div>
+    <div v-if="currentPage === 'transaction'">
+      <TransactionComponent />
     </div>
   </div>
   <RouterView />

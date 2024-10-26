@@ -42,7 +42,7 @@ const deleteItem = (kode) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in items" :key="item.id">
+          <tr v-for="item in items" :key="item.kode">
             <td>{{ item.kode }}</td>
             <td>{{ item.nama }}</td>
             <td>{{ item.deskripsi }}</td>
