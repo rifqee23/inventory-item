@@ -1,18 +1,49 @@
 <script setup>
-import { ref } from "vue";
-import HelloWorld from "./components/HelloWorld.vue";
-import { RouterView, useRouter } from "vue-router";
-import Navbar from "./components/Navbar.vue";
-import UserComponent from "./components/user/UserList.vue";
-import ItemComponent from "./components/item/ItemList.vue";
-import TransactionComponent from "./components/transaction/TransactionList.vue";
+import { ref, computed } from "vue";
 
-const router = useRouter();
-const currentPage = ref("user");
-const items = ref([]);
-const handleNavigation = (page) => {
-  currentPage.value = page.toLowerCase();
+import Header from "./components/dashboard/Header.vue";
+import Sidebar from "./components/dashboard/Sidebar.vue";
+// import { useRouter } from "vue-router";
+import UserView from "./views/UserView.vue";
+import AdminView from "./views/AdminView.vue";
+
+// instance Data
+// untuk membuat state sederhana
+const params = new URLSearchParams(window.location.search);
+const currentRole = ref(params.get("role") || "admin");
+const currentComponent = ref(params.get("component") || "item");
+const isSidebarVisible = ref(params.get("sidebar") !== "hidden");
+
+// computed
+const currentView = computed(() => {
+  return currentRole.value === "admin" ? AdminView : UserView;
+});
+
+// methods
+const updateRole = (role) => {
+  currentRole.value = role;
+  navigateTo("item");
 };
+
+const navigateTo = (component) => {
+  currentComponent.value = component;
+  updateURLParams();
+};
+
+const toggleSidebar = () => {
+  isSidebarVisible.value = !isSidebarVisible.value;
+  updateURLParams();
+};
+
+const updateURLParams = () => {
+  const params = new URLSearchParams();
+  params.set("role", currentRole.value);
+  params.set("component", currentComponent.value);
+  params.set("sidebar", isSidebarVisible.value ? "visible" : "hidden");
+  window.history.replaceState({}, "", `?${params.toString()}`);
+};
+
+const items = ref([]);
 
 const handleAddItem = (item) => {
   items.value.push(item);
@@ -29,20 +60,37 @@ const handleDeleteItem = (itemKode) => {
 </script>
 
 <template>
-  <Navbar @navigate-to="handleNavigation" />
-  <div class="main-content">
-    <div v-if="currentPage === 'user'">
-      <UserComponent />
-    </div>
-    <div v-if="currentPage === 'item'">
-      <ItemComponent
-        @add-item="handleAddItem"
-        @edit-item="handleEditItem"
-        @delete-item="handleDeleteItem"
+  <div id="app">
+    <Header
+      :currentRole="currentRole"
+      @update-role="updateRole"
+      @toggle-sidebar="toggleSidebar"
+      :isSidebarVisible="isSidebarVisible"
+    />
+
+    <div class="app-content">
+      <Sidebar
+        :currentRole="currentRole"
+        :isSidebarVisible="isSidebarVisible"
+        @showComponent="navigateTo"
       />
-    </div>
-    <div v-if="currentPage === 'transaction'">
-      <TransactionComponent />
+
+      <div class="main-content" :class="{ expanded: isSidebarVisible }">
+        <component
+          :is="currentView"
+          :currentComponent="currentComponent"
+          v-if="currentRole === 'admin'"
+          @add-item="handleAddItem"
+          @edit-item="handleEditItem"
+          @delete-item="handleDeleteItem"
+        />
+
+        <component
+          :is="currentView"
+          v-else
+          :currentComponent="currentComponent"
+        />
+      </div>
     </div>
   </div>
   <RouterView />

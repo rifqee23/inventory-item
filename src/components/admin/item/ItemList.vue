@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import ItemCard from "./ItemCard.vue";
-import Modal from "../Modal.vue";
+import Modal from "@/components/Modal.vue";
 import ItemForm from "./ItemForm.vue";
 
 const items = ref([
