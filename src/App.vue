@@ -3,14 +3,28 @@ import { ref } from "vue";
 import HelloWorld from "./components/HelloWorld.vue";
 import { RouterView, useRouter } from "vue-router";
 import Navbar from "./components/Navbar.vue";
-import UserComponent from "./components/UserList.vue";
-import ItemComponent from "./components/ItemList.vue";
-import TransactionComponent from "./components/TransactionList.vue";
+import UserComponent from "./components/user/UserList.vue";
+import ItemComponent from "./components/item/ItemList.vue";
+import TransactionComponent from "./components/transaction/TransactionList.vue";
 
 const router = useRouter();
 const currentPage = ref("user");
+const items = ref([]);
 const handleNavigation = (page) => {
   currentPage.value = page.toLowerCase();
+};
+
+const handleAddItem = (item) => {
+  items.value.push(item);
+};
+
+const handleEditItem = (updatedItem) => {
+  const index = items.value.findIndex((i) => i.kode === updatedItem.kode);
+  if (index !== -1) items.value.splice(index, 1, updatedItem);
+};
+
+const handleDeleteItem = (itemKode) => {
+  items.value = items.value.filter((item) => item.kode !== itemKode);
 };
 </script>
 
@@ -21,7 +35,11 @@ const handleNavigation = (page) => {
       <UserComponent />
     </div>
     <div v-if="currentPage === 'item'">
-      <ItemComponent />
+      <ItemComponent
+        @add-item="handleAddItem"
+        @edit-item="handleEditItem"
+        @delete-item="handleDeleteItem"
+      />
     </div>
     <div v-if="currentPage === 'transaction'">
       <TransactionComponent />

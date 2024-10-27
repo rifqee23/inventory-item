@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from "vue";
+import ItemCard from "./ItemCard.vue";
+import Modal from "../Modal.vue";
+import ItemForm from "./ItemForm.vue";
 
 const items = ref([
   {
@@ -16,11 +19,45 @@ const items = ref([
   },
 ]);
 
+const showForm = ref(false);
+const selectedItem = ref(null);
+const isEdit = ref(false);
+
 const emit = defineEmits(["add-item", "edit-item", "delete-item"]);
+
+const showAddForm = () => {
+  selectedItem.value = { kode: "", nama: "", deskripsi: "", stok: 0 };
+  isEdit.value = false;
+  showForm.value = true;
+};
+
+const editItem = (item) => {
+  selectedItem.value = { ...item };
+  isEdit.value = true;
+  showForm.value = true;
+};
 
 const deleteItem = (kode) => {
   items.value = items.value.filter((item) => item.kode !== kode);
   emit("delete-item", kode);
+};
+
+const handleSubmit = (item) => {
+  if (isEdit.value) {
+    const index = items.value.findIndex((i) => i.kode === item.kode);
+    items.value[index] = item;
+    emit("edit-item", item);
+  } else {
+    items.value.push(item);
+    emit("add-item", item);
+  }
+  showForm.value = false;
+};
+
+const cancelEditForm = () => {
+  showForm.value = false;
+  selectedItem.value = null;
+  isEdit.value = false;
 };
 </script>
 
@@ -28,37 +65,20 @@ const deleteItem = (kode) => {
   <div class="item-list">
     <div class="header">
       <h2>Daftar Item</h2>
-      <button class="add-btn" @click="$emit('add-item')">Tambah Item</button>
+      <button class="add-btn" @click="showAddForm">Tambah Item</button>
     </div>
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Kode</th>
-            <th>Nama</th>
-            <th>deskripsi</th>
-            <th>stok</th>
-            <th class="action-column">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in items" :key="item.kode">
-            <td>{{ item.kode }}</td>
-            <td>{{ item.nama }}</td>
-            <td>{{ item.deskripsi }}</td>
-            <td>{{ item.stok }}</td>
-            <td>
-              <button class="edit-btn" @click="$emit('edit-item', item)">
-                Edit
-              </button>
-              <button class="delete-btn" @click="deleteItem(item.kode)">
-                Delete
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="item-card">
+      <ItemCard
+        v-for="item in items"
+        :key="item.kode"
+        :item="item"
+        @edit-item="editItem"
+        @delete-item="deleteItem"
+      />
     </div>
+    <Modal :visible="showForm" @close="cancelEditForm">
+      <ItemForm :item="selectedItem" :is-edit="isEdit" @submit="handleSubmit" />
+    </Modal>
   </div>
 </template>
 
