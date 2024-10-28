@@ -3,7 +3,6 @@ import { ref, computed } from "vue";
 
 import Header from "./components/dashboard/Header.vue";
 import Sidebar from "./components/dashboard/Sidebar.vue";
-// import { useRouter } from "vue-router";
 import UserView from "./views/UserView.vue";
 import AdminView from "./views/AdminView.vue";
 
