@@ -1,63 +1,3 @@
-<script setup>
-import { ref, computed } from "vue";
-
-import Header from "./components/dashboard/Header.vue";
-import Sidebar from "./components/dashboard/Sidebar.vue";
-import UserView from "./views/UserView.vue";
-import AdminView from "./views/AdminView.vue";
-
-// instance Data
-// untuk membuat state sederhana
-const params = new URLSearchParams(window.location.search);
-const currentRole = ref(params.get("role") || "admin");
-const currentComponent = ref(params.get("component") || "item");
-const isSidebarVisible = ref(params.get("sidebar") !== "hidden");
-
-// computed
-const currentView = computed(() => {
-  return currentRole.value === "admin" ? AdminView : UserView;
-});
-
-// methods
-const updateRole = (role) => {
-  currentRole.value = role;
-  navigateTo("item");
-};
-
-const navigateTo = (component) => {
-  currentComponent.value = component;
-  updateURLParams();
-};
-
-const toggleSidebar = () => {
-  isSidebarVisible.value = !isSidebarVisible.value;
-  updateURLParams();
-};
-
-const updateURLParams = () => {
-  const params = new URLSearchParams();
-  params.set("role", currentRole.value);
-  params.set("component", currentComponent.value);
-  params.set("sidebar", isSidebarVisible.value ? "visible" : "hidden");
-  window.history.replaceState({}, "", `?${params.toString()}`);
-};
-
-const items = ref([]);
-
-const handleAddItem = (item) => {
-  items.value.push(item);
-};
-
-const handleEditItem = (updatedItem) => {
-  const index = items.value.findIndex((i) => i.kode === updatedItem.kode);
-  if (index !== -1) items.value.splice(index, 1, updatedItem);
-};
-
-const handleDeleteItem = (itemKode) => {
-  items.value = items.value.filter((item) => item.kode !== itemKode);
-};
-</script>
-
 <template>
   <div id="app">
     <Header
@@ -75,47 +15,83 @@ const handleDeleteItem = (itemKode) => {
       />
 
       <div class="main-content" :class="{ expanded: isSidebarVisible }">
-        <component
-          :is="currentView"
-          :currentComponent="currentComponent"
-          v-if="currentRole === 'admin'"
-          @add-item="handleAddItem"
-          @edit-item="handleEditItem"
-          @delete-item="handleDeleteItem"
-        />
-
-        <component
-          :is="currentView"
-          v-else
-          :currentComponent="currentComponent"
+        <router-view
+          :key="$route.fullPath"
+          :currentComponent="$route.params.component"
         />
       </div>
     </div>
   </div>
-  <RouterView />
 </template>
 
-<style scoped>
-.app-content {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  display: flex;
-  font: 1em sans-serif;
-  height: 100vh;
-  margin-top: 60px;
-}
+<script>
+import Header from "./components/dashboard/Header.vue";
 
-.main-content {
-  flex-grow: 1;
-  transition: margin-left 0.3s ease;
-}
+import Sidebar from "./components/dashboard/Sidebar.vue";
 
-.main-content.expanded {
-  margin-left: 200px;
-}
+import { EventBus } from "./utils/EventBus";
 
-@media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-  }
-}
-</style>
+export default {
+  components: {
+    Header,
+
+    Sidebar,
+  },
+
+  data() {
+    return {
+      currentRole: this.$route.name || "admin",
+
+      isSidebarVisible: true,
+
+      searchTerm: "",
+    };
+  },
+
+  watch: {
+    "$route.name"(newRole) {
+      this.currentRole = newRole;
+    },
+  },
+
+  computed: {
+    currentView() {
+      return this.currentRole === "admin" ? AdminView : UserView;
+    },
+  },
+
+  methods: {
+    updateRole(role) {
+      this.currentRole = role;
+
+      this.navigateTo("items");
+    },
+
+    navigateTo(component) {
+      this.$router.push({ name: this.currentRole, params: { component } });
+    },
+
+    toggleSidebar() {
+      this.isSidebarVisible = !this.isSidebarVisible;
+    },
+
+    handleSearch(newQuery) {
+      console.log("Search term:", newQuery);
+
+      if (this.currentRole === "admin") {
+        console.log("Search in admin items");
+      } else if (this.currentRole === "user") {
+        console.log("Search in user items");
+      }
+    },
+  },
+
+  mounted() {
+    EventBus.on("search", this.handleSearch);
+  },
+
+  beforeUnmount() {
+    EventBus.off("search", this.handleSearch);
+  },
+};
+</script>
