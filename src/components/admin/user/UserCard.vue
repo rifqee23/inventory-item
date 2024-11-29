@@ -1,0 +1,111 @@
+<script setup>
+const name = "UserCard";
+defineProps({
+  user: {
+    type: Object,
+    required: true,
+  },
+});
+</script>
+
+<template>
+  <div class="user-card">
+    <h3>{{ user.nama }}</h3>
+    <p>{{ user.deskripsi }}</p>
+    <p>Stok: {{ user.stok }}</p>
+    <div class="buttons">
+      <button class="edit" @click="$emit('edit-user', user)">Edit</button>
+      <button class="edit" @click="$emit('delete-user', user.id)">
+        Delete
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.user-card {
+  border: 1px solid #ddd;
+
+  padding: 16px;
+
+  margin-bottom: 10px;
+
+  border-radius: 8px;
+
+  background-color: #f9f9f9;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.item-card h3 {
+  margin: 0 0 10px;
+
+  font-size: 1.5em;
+
+  color: #333;
+}
+
+.item-card p {
+  margin: 5px 0;
+
+  color: #555;
+}
+
+.item-card .stock {
+  font-weight: bold;
+
+  color: #2c3e50;
+}
+
+.item-card .buttons {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+.item-card button {
+  padding: 10px 15px;
+
+  border: none;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s;
+}
+
+.item-card button:hover {
+  background-color: #ddd;
+}
+
+.item-card button.edit {
+  background-color: #4caf50;
+
+  color: white;
+}
+
+.item-card button.edit:hover {
+  background-color: #45a049;
+}
+
+.item-card button.delete {
+  background-color: #e74c3c;
+
+  color: white;
+}
+
+.item-card button.delete:hover {
+  background-color: #c0392b;
+}
+</style>

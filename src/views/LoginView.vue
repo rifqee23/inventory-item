@@ -1,19 +1,17 @@
 <template>
-  <div>
-    <h2>Login</h2>
+  <div class="container mt-5">
+    <h2 class="text-center">Login</h2>
 
-    <form @submit.prevent="login">
-      <div>
+    <form @submit.prevent="login" class="mt-4">
+      <div class="form-group">
         <label for="role">Role:</label>
-
-        <select v-model="role" id="role">
+        <select v-model="role" id="role" class="form-control">
           <option value="admin">Admin</option>
-
           <option value="user">User</option>
         </select>
       </div>
 
-      <button type="submit">Login</button>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
   </div>
 </template>

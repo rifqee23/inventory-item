@@ -39,27 +39,130 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
-const emit = defineEmits(["add-user", "edit-user", "delete-user"]);
-const users = ref([
-  {
-    id: 1,
-    username: "admin",
-    email: "GcG8j@example.com",
-    role: "admin",
-  },
-  {
-    id: 2,
-    username: "budi",
-    email: "Rb9Xf@example.com",
-    role: "user",
-  },
-]);
+<script>
+import { computed, onMounted } from "vue";
 
-const deleteUser = (userId) => {
-  users.value = users.value.filter((user) => user.id !== userId);
-  emit("delete-user", userId);
+import { useUserStore } from "../../../stores/userStore ";
+import { useAuthStore } from "@/stores/authStore";
+
+import UserCard from "@/components/admin/user/UserCard.vue";
+
+import Modal from "@/components/Modal.vue";
+
+import UserForm from "@/components/admin/user/UserForm.vue";
+
+import eventBus from "@/utils/eventBus";
+
+export default {
+  name: "users",
+
+  components: {
+    UserCard,
+
+    Modal,
+
+    UserForm,
+  },
+
+  setup() {
+    const userStore = useUserStore();
+
+    const authStore = useAuthStore();
+
+    const users = computed(() => userStore.users);
+
+    onMounted(() => {
+      if (authStore.token) {
+        userStore.fetchUsers();
+      } else {
+        console.error("User is not authenticated");
+      }
+    });
+
+    return {
+      users,
+
+      userStore,
+
+      addUser: userStore.addUser,
+
+      updateUser: userStore.updateUser,
+
+      deleteUser: userStore.deleteUser,
+    };
+  },
+
+  data() {
+    return {
+      showForm: false,
+
+      selectedUser: null,
+
+      isEdit: false,
+
+      searchQuery: "",
+    };
+  },
+
+  computed: {
+    filteredUsers() {
+      return this.users.filter((user) =>
+        user.username.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+  },
+
+  methods: {
+    showAddForm() {
+      this.selectedUser = { id: "", username: "", email: "", role: "USER" };
+
+      this.isEdit = false;
+
+      this.showForm = true;
+    },
+
+    editUser(user) {
+      this.selectedUser = { ...user };
+
+      this.isEdit = true;
+
+      this.showForm = true;
+    },
+
+    async handleSubmit(user) {
+      if (this.isEdit) {
+        await this.updateUser(user);
+      } else {
+        await this.addUser(user);
+      }
+
+      await this.userStore.fetchUsers(); // Fetch latest users
+
+      this.showForm = false;
+    },
+
+    cancelEditForm() {
+      this.showForm = false;
+    },
+
+    async handleDeleteUser(id) {
+      await this.deleteUser(id);
+
+      await this.userStore.fetchUsers(); // Fetch latest users
+    },
+
+    handleSearch(query) {
+      this.searchQuery = query;
+    },
+  },
+
+  mounted() {
+    eventBus.on("search", this.handleSearch);
+  },
+
+  beforeUnmount() {
+    eventBus.off("search", this.handleSearch);
+  },
 };
 </script>
 

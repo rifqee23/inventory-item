@@ -3,27 +3,17 @@ import { ref } from "vue";
 import ItemCard from "./ItemCard.vue";
 import Modal from "@/components/Modal.vue";
 import ItemForm from "./ItemForm.vue";
-
-const items = ref([
-  {
-    kode: "A001",
-    nama: "Laptop",
-    deskripsi: "Laptop 15 inch",
-    stok: 10,
-  },
-  {
-    kode: "A002",
-    nama: "Mouse",
-    deskripsi: "Mouse Logitech",
-    stok: 5,
-  },
-]);
+import { useItemStore } from "../../../stores/itemStore";
+import { computed } from "vue";
 
 const showForm = ref(false);
 const selectedItem = ref(null);
 const isEdit = ref(false);
+const searchQuery = ref("");
 
 const emit = defineEmits(["add-item", "edit-item", "delete-item"]);
+
+const itemStore = useItemStore();
 
 const showAddForm = () => {
   selectedItem.value = { kode: "", nama: "", deskripsi: "", stok: 0 };
@@ -38,18 +28,15 @@ const editItem = (item) => {
 };
 
 const deleteItem = (kode) => {
-  items.value = items.value.filter((item) => item.kode !== kode);
-  emit("delete-item", kode);
+  itemStore.deleteItem(kode);
 };
 
 const handleSubmit = (item) => {
+  const itemStore = useItemStore();
   if (isEdit.value) {
-    const index = items.value.findIndex((i) => i.kode === item.kode);
-    items.value[index] = item;
-    emit("edit-item", item);
+    itemStore.updateItem(item);
   } else {
-    items.value.push(item);
-    emit("add-item", item);
+    itemStore.addItem(item);
   }
   showForm.value = false;
 };
@@ -59,6 +46,15 @@ const cancelEditForm = () => {
   selectedItem.value = null;
   isEdit.value = false;
 };
+
+const filteredItems = computed(() => {
+  return itemStore.items.filter((item) => {
+    return (
+      item.kode.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      item.nama.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  });
+});
 </script>
 
 <template>
@@ -69,7 +65,7 @@ const cancelEditForm = () => {
     </div>
     <div class="item-card">
       <ItemCard
-        v-for="item in items"
+        v-for="item in filteredItems"
         :key="item.kode"
         :item="item"
         @edit-item="editItem"
@@ -93,6 +89,7 @@ const cancelEditForm = () => {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
   margin: 20px 0;
+  margin-top: 100px;
 }
 
 .header {
